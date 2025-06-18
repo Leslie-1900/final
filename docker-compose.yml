@@ -11,14 +11,26 @@ services:
       - project-net
 
   todo-app:
-    image: docker.io/amir20/dozzle-todo:latest
+    image: docker/getting-started # Docker 官方示例（含 Todo 应用）
     container_name: todo-app
     ports:
-      - "8081:80"
+      - "8081:3000"
     restart: unless-stopped
+    networks:
+      - project-net
+
+  mongo:
+    image: mongo:latest
+    container_name: mongo
+    restart: unless-stopped
+    volumes:
+      - todo-db:/data/db
     networks:
       - project-net
 
 networks:
   project-net:
     driver: bridge
+
+volumes:
+  todo-db:
