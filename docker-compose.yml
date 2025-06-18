@@ -11,13 +11,17 @@ services:
       - project-net
 
   todo-app:
-    image: docker/getting-started # Docker 官方示例（含 Todo 应用）
+    image: amir20/todo-list-app:latest
     container_name: todo-app
     ports:
       - "8081:3000"
     restart: unless-stopped
     networks:
       - project-net
+    depends_on:
+      - mongo # 确保 MongoDB 先启动
+    environment:
+      - MONGO_URL=mongodb://mongo:27017/todoapp # 连接 MongoDB
 
   mongo:
     image: mongo:latest
