@@ -1,0 +1,43 @@
+name: Automated Deployment
+
+on:
+  push:
+    branches: [ "main" ]
+
+env:
+  SSH_HOST: ${{ secrets.SSH_HOST }}
+  SSH_USER: ${{ secrets.SSH_USER }}
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Setup known_hosts
+      run: |
+        mkdir -p ~/.ssh
+        echo "${{ secrets.KNOWN_HOSTS }}" >> ~/.ssh/known_hosts
+        chmod 600 ~/.ssh/known_hosts
+
+    - name: Install SSH Key
+      uses: shimataro/ssh-key-action@v2
+      with:
+        key: ${{ secrets.SSH_KEY }}
+        known_hosts: unnecessary # 因为我们已经手动设置了
+
+    - name: Copy files to server
+      run: |
+        scp -r . ${SSH_USER}@${SSH_HOST}:~/project1
+
+    - name: Deploy Applications
+      run: |
+        ssh ${SSH_USER}@${SSH_HOST} << 'EOF'
+          cd ~/project1
+          docker-compose down
+          docker image prune -f
+          docker-compose up -d --build
+          echo "Deployment completed successfully!"
+        EOF
